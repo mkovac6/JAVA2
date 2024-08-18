@@ -2,17 +2,21 @@ package hr.algebra.trivialpursuit.trivialpursuit;
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
+
+import java.util.Optional;
 
 public class HelloController {
 
     /*
-    * NE = North East
-    * SE = South East
-    * SW = South West
-    * NW = North West
-    */
+     * NE = North East
+     * SE = South East
+     * SW = South West
+     * NW = North West
+     */
     @FXML
     private Button Startbtn;
     @FXML
@@ -48,17 +52,98 @@ public class HelloController {
     @FXML
     private Button Rollbtn;
 
+    private static Letter turn;
 
-    public void buttonPressed(Event event){
-        Button buttonPressed = (Button) event.getSource();
-        buttonPressed.setText(Letter.A.name());
+    private static Integer numberofTurns;
+
+    public void initialize() {
+        turn = Letter.A;
+        numberofTurns = 0;
     }
 
-    public void RollbuttonPressed(Event event){
+    public void newGame(){
+        numberofTurns = 0;
+        turn = Letter.A;
+    }
+
+    public void buttonPressed(Event event) {
+        Button buttonPressed = (Button) event.getSource();
+        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
+                || buttonPressed.getText().contains("QUESTION")
+                || buttonPressed.getText().contains("HALFWAY")) {
+            buttonPressed.setText(turn.name());
+            numberofTurns++;
+            checkWinner(turn);
+            turn = turn == Letter.A ? Letter.B : Letter.A;
+        }
+    }
+
+    public void GEObuttonPressed(Event event) {
+        Button buttonPressed = (Button) event.getSource();
+        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
+                || buttonPressed.getText().contains("QUESTION")
+                || buttonPressed.getText().contains("HALFWAY")) {
+            buttonPressed.setText(turn.name());
+            checkWinner(turn);
+            turn = turn == Letter.A ? Letter.B : Letter.A;
+            numberofTurns++;
+            TextInputDialog dialog = new TextInputDialog("Answer");
+            dialog.setTitle("QUESTION");
+            dialog.setHeaderText("GEOGRAPHY QUESTION");
+            dialog.setContentText("Question example: ");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(s -> System.out.println("Your name: " + s));
+        }
+    }
+
+    public void SCIbuttonPressed(Event event) {
+        Button buttonPressed = (Button) event.getSource();
+        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
+                || buttonPressed.getText().contains("QUESTION")
+                || buttonPressed.getText().contains("HALFWAY")) {
+            buttonPressed.setText(turn.name());
+            checkWinner(turn);
+            turn = turn == Letter.A ? Letter.B : Letter.A;
+            numberofTurns++;
+            TextInputDialog dialog = new TextInputDialog("Answer");
+            dialog.setTitle("QUESTION");
+            dialog.setHeaderText("SCIENCE QUESTION");
+            dialog.setContentText("Question example: ");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(s -> System.out.println("Your name: " + s));
+        }
+    }
+
+    public void SPbuttonPressed(Event event) {
+        Button buttonPressed = (Button) event.getSource();
+        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
+                || buttonPressed.getText().contains("QUESTION")
+                || buttonPressed.getText().contains("HALFWAY")) {
+            buttonPressed.setText(turn.name());
+            checkWinner(turn);
+            turn = turn == Letter.A ? Letter.B : Letter.A;
+            numberofTurns++;
+            TextInputDialog dialog = new TextInputDialog("Answer");
+            dialog.setTitle("QUESTION");
+            dialog.setHeaderText("SPORT QUESTION");
+            dialog.setContentText("Question example: ");
+
+            Optional<String> result = dialog.showAndWait();
+            result.ifPresent(s -> System.out.println("Your name: " + s));
+        }
+    }
+
+    public void checkWinner(Letter letter) {
+
+    }
+
+    public void RollbuttonPressed(Event event) {
         int min = 1;
         int max = 6;
-        double random = Math.random()*(max - min + 1) + min;
+        double random = Math.random() * (max - min + 1) + min;
         Button RollbuttonPressed = (Button) event.getSource();
-        RollbuttonPressed.setText("Roll: " + (int)Math.round(random));
+        RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
     }
 }
