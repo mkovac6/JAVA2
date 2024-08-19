@@ -78,7 +78,7 @@ public class HelloController {
         }
     }
 
-    public void GEObuttonPressed(Event event) {
+    public void questionbuttonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
         if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
                 || buttonPressed.getText().contains("QUESTION")
@@ -90,44 +90,6 @@ public class HelloController {
             TextInputDialog dialog = new TextInputDialog("Answer");
             dialog.setTitle("QUESTION");
             dialog.setHeaderText("GEOGRAPHY QUESTION");
-            dialog.setContentText("Question example: ");
-
-            Optional<String> result = dialog.showAndWait();
-            result.ifPresent(s -> System.out.println("Your name: " + s));
-        }
-    }
-
-    public void SCIbuttonPressed(Event event) {
-        Button buttonPressed = (Button) event.getSource();
-        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
-                || buttonPressed.getText().contains("QUESTION")
-                || buttonPressed.getText().contains("HALFWAY")) {
-            buttonPressed.setText(turn.name());
-            checkWinner(turn);
-            turn = turn == Letter.A ? Letter.B : Letter.A;
-            numberofTurns++;
-            TextInputDialog dialog = new TextInputDialog("Answer");
-            dialog.setTitle("QUESTION");
-            dialog.setHeaderText("SCIENCE QUESTION");
-            dialog.setContentText("Question example: ");
-
-            Optional<String> result = dialog.showAndWait();
-            result.ifPresent(s -> System.out.println("Your name: " + s));
-        }
-    }
-
-    public void SPbuttonPressed(Event event) {
-        Button buttonPressed = (Button) event.getSource();
-        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
-                || buttonPressed.getText().contains("QUESTION")
-                || buttonPressed.getText().contains("HALFWAY")) {
-            buttonPressed.setText(turn.name());
-            checkWinner(turn);
-            turn = turn == Letter.A ? Letter.B : Letter.A;
-            numberofTurns++;
-            TextInputDialog dialog = new TextInputDialog("Answer");
-            dialog.setTitle("QUESTION");
-            dialog.setHeaderText("SPORT QUESTION");
             dialog.setContentText("Question example: ");
 
             Optional<String> result = dialog.showAndWait();
