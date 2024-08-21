@@ -19,7 +19,7 @@
             <Line endX="-72.0" endY="-324.0" layoutX="540.0" layoutY="400.0" startX="-72.0" startY="324.0" />
             <Line endX="-72.0" endY="-324.0" layoutX="473.0" layoutY="323.0" rotate="90.0" startX="-72.0" startY="324.0" />
             <Line endX="-72.0" endY="-324.0" layoutX="473.0" layoutY="470.0" rotate="90.0" startX="-72.0" startY="324.0" />
-            <Button fx:id="NWbtn3" layoutX="245.0" layoutY="111.0" mnemonicParsing="false" onAction="#buttonPressed" prefHeight="45.0" prefWidth="45.0" />
+            <Button fx:id="NWbtn3" layoutX="245.0" layoutY="111.0" mnemonicParsing="false" onAction="#winnerButtonPressed" prefHeight="45.0" prefWidth="45.0" />
             <Button fx:id="NWbtn1" layoutX="111.0" layoutY="244.0" mnemonicParsing="false" onAction="#buttonPressed" prefHeight="45.0" prefWidth="45.0" />
             <Button fx:id="NWbtn2" layoutX="170.0" layoutY="161.0" mnemonicParsing="false" onAction="#buttonPressed" prefHeight="45.0" prefWidth="45.0" />
             <Button fx:id="Startbtn" layoutX="356.0" layoutY="76.0" mnemonicParsing="false" onAction="#buttonPressed" prefHeight="45.0" prefWidth="90.0" text="START" />
