@@ -181,4 +181,9 @@ public class HelloController {
         Button RollbuttonPressed = (Button) event.getSource();
         RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
     }
+
+    public void saveGame(){}
+
+    public void loadGame(){}
+
 }
