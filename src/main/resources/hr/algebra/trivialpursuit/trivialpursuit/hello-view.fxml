@@ -45,6 +45,11 @@
                         <MenuItem mnemonicParsing="false" onAction="#loadGame" text="Load Game" />
                   </items>
                 </Menu>
+                  <Menu mnemonicParsing="false" text="Documentation">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#showDocumentation" text="Show documentation" />
+                     </items>
+                  </Menu>
               </menus>
             </MenuBar>
          </children>

@@ -4,6 +4,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 
 import java.io.*;
@@ -249,5 +250,22 @@ public class HelloController {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
+    }
+
+    @FXML
+    public void showDocumentation(Event event) {
+        String documentation = DocumentationGen.generateDocumentation(HelloController.class);
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Documentation");
+        alert.setHeaderText("Generated documentation of HelloController class.");
+        alert.setContentText(documentation);
+
+        TextArea textArea = new TextArea(documentation);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        alert.getDialogPane().setContent(textArea);
+
+        alert.showAndWait();
     }
 }
