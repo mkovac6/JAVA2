@@ -6,6 +6,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextInputDialog;
 
+import java.io.*;
+
 public class HelloController {
 
     /*
@@ -110,15 +112,14 @@ public class HelloController {
 
             if (repository.isAnswerCorrect(question, playerAnswer)) {
                 correct();
-            }
-            else {
+            } else {
                 incorrect();
             }
 
         }
     }
 
-    public void correct(){
+    public void correct() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Answer feedback!");
         alert.setHeaderText(null);
@@ -127,7 +128,7 @@ public class HelloController {
         alert.showAndWait();
     }
 
-    public void incorrect(){
+    public void incorrect() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Answer feedback!");
         alert.setHeaderText(null);
@@ -157,15 +158,13 @@ public class HelloController {
 
             if (repository.isAnswerCorrect(question, playerAnswer)) {
                 winner();
-            }
-            else {
+            } else {
                 incorrect();
             }
-
         }
     }
 
-    public void winner(){
+    public void winner() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("ENDGAME");
         alert.setHeaderText(null);
@@ -182,8 +181,73 @@ public class HelloController {
         RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
     }
 
-    public void saveGame(){}
+    public void saveGame() {
 
-    public void loadGame(){}
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("data.dat"))) {
 
+            String[] buttonState = {
+                    Startbtn.getText(),
+                    Question1btn.getText(),
+                    Halfwaybtn.getText(),
+                    Question2btn.getText(),
+                    NEbtn1.getText(),
+                    NEbtn2.getText(),
+                    NEbtn3.getText(),
+                    SEbtn1.getText(),
+                    SEbtn2.getText(),
+                    SEbtn3.getText(),
+                    SWbtn1.getText(),
+                    SWbtn2.getText(),
+                    SWbtn3.getText(),
+                    NWbtn1.getText(),
+                    NWbtn2.getText(),
+                    NWbtn3.getText()
+            };
+
+            GameState gameState = new GameState(buttonState, turn.name(), numberofTurns);
+            out.writeObject(gameState);
+
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not save game state");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
+
+    }
+
+    public void loadGame() {
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("data.dat"))) {
+            GameState gameState = (GameState) in.readObject();
+
+            String[] buttonState = gameState.getButtonState();
+            Startbtn.setText(buttonState[0]);
+            Question1btn.setText(buttonState[1]);
+            Halfwaybtn.setText(buttonState[2]);
+            Question2btn.setText(buttonState[3]);
+            NEbtn1.setText(buttonState[4]);
+            NEbtn2.setText(buttonState[5]);
+            NEbtn3.setText(buttonState[6]);
+            SEbtn1.setText(buttonState[7]);
+            SEbtn2.setText(buttonState[8]);
+            SEbtn3.setText(buttonState[9]);
+            SWbtn1.setText(buttonState[10]);
+            SWbtn2.setText(buttonState[11]);
+            SWbtn3.setText(buttonState[12]);
+            NWbtn1.setText(buttonState[13]);
+            NWbtn2.setText(buttonState[14]);
+            NWbtn3.setText(buttonState[15]);
+            turn = Letter.valueOf(gameState.getTurnState());
+            numberofTurns = gameState.getNumberOfTurns();
+
+        } catch (IOException | ClassNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not load game state");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
+    }
 }
