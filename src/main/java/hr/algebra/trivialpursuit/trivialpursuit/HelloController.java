@@ -116,7 +116,6 @@ public class HelloController {
             } else {
                 incorrect();
             }
-
         }
     }
 
@@ -215,7 +214,6 @@ public class HelloController {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
-
     }
 
     public void loadGame() {
@@ -253,7 +251,7 @@ public class HelloController {
     }
 
     @FXML
-    public void showDocumentation(Event event) {
+    public void showDocumentation() {
         String documentation = DocumentationGen.generateDocumentation(HelloController.class);
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
