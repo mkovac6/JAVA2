@@ -8,6 +8,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -343,11 +344,11 @@ public class HelloController {
     }
 
     public void loadGameFromXML() {
+        System.out.println("Load Game button pressed");
         try {
             File xmlFile = new File("gameConfiguration.xml");
-
-            if (!xmlFile.exists()){
-                System.out.println("XML file not found!" + xmlFile.getAbsolutePath());
+            if (!xmlFile.exists()) {
+                System.out.println("XML file not found: " + xmlFile.getAbsolutePath());
                 return;
             }
 
@@ -356,86 +357,106 @@ public class HelloController {
             Document doc = builder.parse(xmlFile);
             doc.getDocumentElement().normalize();
 
+            // Print the entire XML content for debugging
+            System.out.println("XML Content:");
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new StringWriter());
+            transformer.transform(source, result);
+            System.out.println(result.getWriter().toString());
+
+            // Load turn
             NodeList turnList = doc.getElementsByTagName("Turn");
             if (turnList.getLength() > 0) {
                 String turnValue = turnList.item(0).getTextContent().trim();
-                try{
-                    turn = Letter.valueOf(turnValue);
-                    System.out.println("Turn loaded: " + turn.name());
-                } catch(IllegalArgumentException e) {
-                    System.out.println("Invalid turn value: " + turnValue);
-                }
+                turn = Letter.valueOf(turnValue);
+                System.out.println("Turn loaded: " + turn);
             }
 
+            // Load number of turns
             NodeList numberOfTurnsList = doc.getElementsByTagName("NumberOfTurns");
             if (numberOfTurnsList.getLength() > 0) {
-                numberofTurns = Integer.parseInt(numberOfTurnsList.item(0).getTextContent());
+                numberofTurns = Integer.parseInt(numberOfTurnsList.item(0).getTextContent().trim());
             }
 
-            NodeList buttonList = doc.getElementsByTagName("Buttons");
+            // Load button texts
+            NodeList buttonList = doc.getElementsByTagName("Button");
+            System.out.println("Number of buttons found: " + buttonList.getLength()); // Debugging output
+
+            if (buttonList.getLength() == 0) {
+                System.out.println("No buttons found in the XML.");
+                return; // Exit if no buttons are found
+            }
+
             for (int i = 0; i < buttonList.getLength(); i++) {
-                Element buttonElement = (Element) buttonList.item(i);
-                String id = buttonElement.getAttribute("id").trim();
-                String text = buttonElement.getTextContent().trim();
+                Node node = buttonList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element buttonElement = (Element) node;
+                    String id = buttonElement.getAttribute("id").trim(); // Trim whitespace
+                    String text = buttonElement.getTextContent().trim(); // Trim whitespace
 
-                System.out.println("Processing button with ID: " + id);
+                    // Check if ID and text are being retrieved correctly
+                    System.out.println("Processing button with ID: " + id); // Debugging output
+                    System.out.println("Button text: '" + text + "'"); // Debugging output for text
 
-                switch (id) {
-                    case "Startbtn":
-                        Startbtn.setText(text);
-                        System.out.println("Updated Start button text to " + text);
-                        break;
-                    case "Question1btn":
-                        Question1btn.setText(text);
-                        break;
-                    case "Halfwaybtn":
-                        Halfwaybtn.setText(text);
-                        break;
-                    case "Question2btn":
-                        Question2btn.setText(text);
-                        break;
-                    case "NEbtn1":
-                        NEbtn1.setText(text);
-                        break;
-                    case "NEbtn2":
-                        NEbtn2.setText(text);
-                        break;
-                    case "NEbtn3":
-                        NEbtn3.setText(text);
-                        break;
-                    case "SEbtn1":
-                        SEbtn1.setText(text);
-                        break;
-                    case "SEbtn2":
-                        SEbtn2.setText(text);
-                        break;
-                    case "SEbtn3":
-                        SEbtn3.setText(text);
-                        break;
-                    case "SWbtn1":
-                        SWbtn1.setText(text);
-                        break;
-                    case "SWbtn2":
-                        SWbtn2.setText(text);
-                        break;
-                    case "SWbtn3":
-                        SWbtn3.setText(text);
-                        break;
-                    case "NWbtn1":
-                        NWbtn1.setText(text);
-                        break;
-                    case "NWbtn2":
-                        NWbtn2.setText(text);
-                        break;
-                    case "NWbtn3":
-                        NWbtn3.setText(text);
-                        break;
-                    default:
-                        System.out.println("Unknown button ID: " + id);
+                    switch (id) {
+                        case "Startbtn":
+                            Startbtn.setText(text);
+                            break;
+                        case "Question1btn":
+                            Question1btn.setText(text);
+                            break;
+                        case "Halfwaybtn":
+                            Halfwaybtn.setText(text);
+                            break;
+                        case "Question2btn":
+                            Question2btn.setText(text);
+                            break;
+                        case "NEbtn1":
+                            NEbtn1.setText(text);
+                            break;
+                        case "NEbtn2":
+                            NEbtn2.setText(text);
+                            break;
+                        case "NEbtn3":
+                            NEbtn3.setText(text);
+                            break;
+                        case "SEbtn1":
+                            SEbtn1.setText(text);
+                            break;
+                        case "SEbtn2":
+                            SEbtn2.setText(text);
+                            break;
+                        case "SEbtn3":
+                            SEbtn3.setText(text);
+                            break;
+                        case "SWbtn1":
+                            SWbtn1.setText(text);
+                            break;
+                        case "SWbtn2":
+                            SWbtn2.setText(text);
+                            break;
+                        case "SWbtn3":
+                            SWbtn3.setText(text);
+                            break;
+                        case "NWbtn1":
+                            NWbtn1.setText(text);
+                            break;
+                        case "NWbtn2":
+                            NWbtn2.setText(text);
+                            break;
+                        case "NWbtn3":
+                            NWbtn3.setText(text);
+                            break;
+                        default:
+                            System.out.println("Unknown button ID: " + id);
+                    }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("Error loading game: " + e.getMessage());
+        } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }
