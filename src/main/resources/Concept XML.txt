@@ -1,0 +1,13 @@
+<GameConfiguration>
+	<Turn>A<Turn>
+	<NumberOfTurns>0<NumberOfTurns>
+	<Buttons>
+		<Button id ="Start">Start<Button>
+		<Button id = "Question1">QUESTION<Button>
+		<Button id = "Halfway">HALFWAY<Button>
+		<Button id = "NEbtn1">QUESTION<Button>
+		<Button id = "NEbtn2">Question1<Button>
+		<Button id = "NEbtn3">Question1<Button>
+		<!-- etc ->
+	<Buttons>
+<GameConfiguration>

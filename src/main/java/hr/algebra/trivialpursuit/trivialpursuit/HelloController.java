@@ -6,8 +6,22 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.sql.SQLOutput;
 
 public class HelloController {
 
@@ -52,7 +66,7 @@ public class HelloController {
 
     private static Letter turn;
 
-    private static Integer numberofTurns;
+    private static Integer numberofTurns = 0;
 
     public void initialize() {
         turn = Letter.A;
@@ -265,5 +279,163 @@ public class HelloController {
         alert.getDialogPane().setContent(textArea);
 
         alert.showAndWait();
+    }
+
+    public void sameGameXML() {
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.newDocument();
+
+            Element root = doc.createElement("GameConfiguration");
+            doc.appendChild(root);
+
+            Element turnElement = doc.createElement("Turn");
+            turnElement.appendChild(doc.createTextNode(turn.name()));
+            root.appendChild(turnElement);
+
+            Element numberOfTurnsElement = doc.createElement("NumberOfTurns");
+            numberOfTurnsElement.appendChild(doc.createTextNode(Integer.toString(numberofTurns)));
+            root.appendChild(numberOfTurnsElement);
+
+            Element buttonsElement = doc.createElement("Buttons");
+            root.appendChild(buttonsElement);
+            extractedButtonState(doc, buttonsElement);
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File("gameConfiguration.xml"));
+            transformer.transform(source, result);
+
+        } catch (ParserConfigurationException | TransformerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void extractedButtonState(Document doc, Element buttonsElement) {
+        addButtonStateToXML(doc, buttonsElement, Startbtn, "Startbtn");
+        addButtonStateToXML(doc, buttonsElement, Question1btn, "Question1btn");
+        addButtonStateToXML(doc, buttonsElement, Halfwaybtn, "Halfwaybtn");
+        addButtonStateToXML(doc, buttonsElement, Question2btn, "Question2btn");
+        addButtonStateToXML(doc, buttonsElement, NEbtn1, "NEbtn1");
+        addButtonStateToXML(doc, buttonsElement, NEbtn2, "NEbtn2");
+        addButtonStateToXML(doc, buttonsElement, NEbtn3, "NEbtn3");
+        addButtonStateToXML(doc, buttonsElement, SEbtn1, "SEbtn1");
+        addButtonStateToXML(doc, buttonsElement, SEbtn2, "SEbtn2");
+        addButtonStateToXML(doc, buttonsElement, SEbtn3, "SEbtn3");
+        addButtonStateToXML(doc, buttonsElement, SWbtn1, "SWbtn1");
+        addButtonStateToXML(doc, buttonsElement, SWbtn2, "SWbtn2");
+        addButtonStateToXML(doc, buttonsElement, SWbtn3, "SWbtn3");
+        addButtonStateToXML(doc, buttonsElement, NWbtn1, "NWbtn1");
+        addButtonStateToXML(doc, buttonsElement, NWbtn2, "NWbtn2");
+        addButtonStateToXML(doc, buttonsElement, NWbtn3, "NWbtn3");
+    }
+
+    private void addButtonStateToXML(Document doc, Element parent, Button button, String id) {
+
+        Element buttonElement = doc.createElement("Button");
+        buttonElement.setAttribute("id", id);
+        buttonElement.appendChild(doc.createTextNode(button.getText()));
+        parent.appendChild(buttonElement);
+
+    }
+
+    public void loadGameFromXML() {
+        try {
+            File xmlFile = new File("gameConfiguration.xml");
+
+            if (!xmlFile.exists()){
+                System.out.println("XML file not found!" + xmlFile.getAbsolutePath());
+                return;
+            }
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            NodeList turnList = doc.getElementsByTagName("Turn");
+            if (turnList.getLength() > 0) {
+                String turnValue = turnList.item(0).getTextContent().trim();
+                try{
+                    turn = Letter.valueOf(turnValue);
+                    System.out.println("Turn loaded: " + turn.name());
+                } catch(IllegalArgumentException e) {
+                    System.out.println("Invalid turn value: " + turnValue);
+                }
+            }
+
+            NodeList numberOfTurnsList = doc.getElementsByTagName("NumberOfTurns");
+            if (numberOfTurnsList.getLength() > 0) {
+                numberofTurns = Integer.parseInt(numberOfTurnsList.item(0).getTextContent());
+            }
+
+            NodeList buttonList = doc.getElementsByTagName("Buttons");
+            for (int i = 0; i < buttonList.getLength(); i++) {
+                Element buttonElement = (Element) buttonList.item(i);
+                String id = buttonElement.getAttribute("id").trim();
+                String text = buttonElement.getTextContent().trim();
+
+                System.out.println("Processing button with ID: " + id);
+
+                switch (id) {
+                    case "Startbtn":
+                        Startbtn.setText(text);
+                        System.out.println("Updated Start button text to " + text);
+                        break;
+                    case "Question1btn":
+                        Question1btn.setText(text);
+                        break;
+                    case "Halfwaybtn":
+                        Halfwaybtn.setText(text);
+                        break;
+                    case "Question2btn":
+                        Question2btn.setText(text);
+                        break;
+                    case "NEbtn1":
+                        NEbtn1.setText(text);
+                        break;
+                    case "NEbtn2":
+                        NEbtn2.setText(text);
+                        break;
+                    case "NEbtn3":
+                        NEbtn3.setText(text);
+                        break;
+                    case "SEbtn1":
+                        SEbtn1.setText(text);
+                        break;
+                    case "SEbtn2":
+                        SEbtn2.setText(text);
+                        break;
+                    case "SEbtn3":
+                        SEbtn3.setText(text);
+                        break;
+                    case "SWbtn1":
+                        SWbtn1.setText(text);
+                        break;
+                    case "SWbtn2":
+                        SWbtn2.setText(text);
+                        break;
+                    case "SWbtn3":
+                        SWbtn3.setText(text);
+                        break;
+                    case "NWbtn1":
+                        NWbtn1.setText(text);
+                        break;
+                    case "NWbtn2":
+                        NWbtn2.setText(text);
+                        break;
+                    case "NWbtn3":
+                        NWbtn3.setText(text);
+                        break;
+                    default:
+                        System.out.println("Unknown button ID: " + id);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading game: " + e.getMessage());
+        }
     }
 }

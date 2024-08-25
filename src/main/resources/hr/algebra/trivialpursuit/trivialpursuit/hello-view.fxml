@@ -50,6 +50,12 @@
                         <MenuItem mnemonicParsing="false" onAction="#showDocumentation" text="Show documentation" />
                      </items>
                   </Menu>
+                  <Menu mnemonicParsing="false" text="XML">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#sameGameXML" text="Save Config to XML" />
+                        <MenuItem mnemonicParsing="false" onAction="#loadGameFromXML" text="Load from XML" />
+                     </items>
+                  </Menu>
               </menus>
             </MenuBar>
          </children>
