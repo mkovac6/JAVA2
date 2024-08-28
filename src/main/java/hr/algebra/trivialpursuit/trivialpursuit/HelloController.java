@@ -1,11 +1,10 @@
 package hr.algebra.trivialpursuit.trivialpursuit;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,13 +15,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.sql.SQLOutput;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class HelloController {
 
@@ -107,8 +108,9 @@ public class HelloController {
         }
     }
 
-    public void questionbuttonPressed(Event event) {
+    public void questionButtonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
+
         if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
                 || buttonPressed.getText().contains("QUESTION")
                 || buttonPressed.getText().contains("HALFWAY")) {
@@ -116,23 +118,53 @@ public class HelloController {
             turn = turn == Letter.A ? Letter.B : Letter.A;
             numberofTurns++;
 
+            Task<String> questionTask = new Task<>() {
+                @Override
+                protected String call() {
+                    QuestionRepository repository = new QuestionRepository();
+                    return repository.getRandomQuestion();
+                }
+
+                @Override
+                protected void succeeded() {
+                    String question = getValue();
+                    showQuestionDialog(question);
+                }
+
+                @Override
+                protected void failed() {
+                    Throwable ex = getException();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Could not retrieve question");
+                        alert.setContentText(ex.getMessage());
+                        alert.showAndWait();
+                    });
+                }
+            };
+            new Thread(questionTask).start();
+        }
+    }
+
+    // Method to show the question dialog
+    private void showQuestionDialog(String question) {
+        TextInputDialog dialog = new TextInputDialog("Answer");
+        dialog.setTitle("QUESTION");
+        dialog.setHeaderText("Random question!");
+        dialog.setContentText("Question: " + question);
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(playerAnswer -> {
             QuestionRepository repository = new QuestionRepository();
-            String question = repository.getRandomQuestion();
-            TextInputDialog dialog = new TextInputDialog("Answer");
-            dialog.setTitle("QUESTION");
-            dialog.setHeaderText("Random question!");
-            dialog.setContentText("Question: " + question);
-
-            dialog.showAndWait();
-            String playerAnswer = dialog.getEditor().getText();
-
             if (repository.isAnswerCorrect(question, playerAnswer)) {
                 correct();
             } else {
                 incorrect();
             }
-        }
+        });
     }
+
 
     public void correct() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -154,29 +186,61 @@ public class HelloController {
 
     public void winnerButtonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
+
         if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
                 || buttonPressed.getText().contains("QUESTION")
                 || buttonPressed.getText().contains("HALFWAY")) {
+
             buttonPressed.setText(turn.name());
             turn = turn == Letter.A ? Letter.B : Letter.A;
             numberofTurns++;
 
+            Task<String> questionTask = new Task<>() {
+                @Override
+                protected String call() {
+                    QuestionRepository repository = new QuestionRepository();
+                    return repository.getRandomQuestion();
+                }
+
+                @Override
+                protected void succeeded() {
+                    String question = getValue();
+                    showWinnerQuestionDialog(question);
+                }
+
+                @Override
+                protected void failed() {
+                    Throwable ex = getException();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Could not retrieve question");
+                        alert.setContentText(ex.getMessage());
+                        alert.showAndWait();
+                    });
+                }
+            };
+            new Thread(questionTask).start();
+        }
+    }
+
+    private void showWinnerQuestionDialog(String question) {
+        TextInputDialog dialog = new TextInputDialog("Answer");
+        dialog.setTitle("QUESTION");
+        dialog.setHeaderText("FINAL question!");
+        dialog.setContentText("Question: " + question);
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(playerAnswer -> {
             QuestionRepository repository = new QuestionRepository();
-            String question = repository.getRandomQuestion();
-            TextInputDialog dialog = new TextInputDialog("Answer");
-            dialog.setTitle("QUESTION");
-            dialog.setHeaderText("FINAL question!");
-            dialog.setContentText("Question: " + question);
+            boolean isCorrect = repository.isAnswerCorrect(question, playerAnswer);
 
-            dialog.showAndWait();
-            String playerAnswer = dialog.getEditor().getText();
-
-            if (repository.isAnswerCorrect(question, playerAnswer)) {
+            if (isCorrect) {
                 winner();
             } else {
                 incorrect();
             }
-        }
+        });
     }
 
     public void winner() {
@@ -197,72 +261,131 @@ public class HelloController {
     }
 
     public void saveGame() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Save");
+        alert.setHeaderText("Are you sure you want to save the game?");
+        alert.setContentText("This will overwrite the current game state.");
 
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("data.dat"))) {
-
-            String[] buttonState = {
-                    Startbtn.getText(),
-                    Question1btn.getText(),
-                    Halfwaybtn.getText(),
-                    Question2btn.getText(),
-                    NEbtn1.getText(),
-                    NEbtn2.getText(),
-                    NEbtn3.getText(),
-                    SEbtn1.getText(),
-                    SEbtn2.getText(),
-                    SEbtn3.getText(),
-                    SWbtn1.getText(),
-                    SWbtn2.getText(),
-                    SWbtn3.getText(),
-                    NWbtn1.getText(),
-                    NWbtn2.getText(),
-                    NWbtn3.getText()
-            };
-
-            GameState gameState = new GameState(buttonState, turn.name(), numberofTurns);
-            out.writeObject(gameState);
-
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Could not save game state");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.CANCEL) {
+            System.out.println("Save canceled!");
+            return;
         }
+
+        Task<Void> saveGameTask = new Task<>() {
+            @Override
+            protected Void call() {
+                try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("data.dat"))) {
+                    GameState gameState = getGameState();
+                    out.writeObject(gameState);
+
+                    Platform.runLater(() -> {
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Save Successful");
+                        successAlert.setHeaderText("Game state saved successfully.");
+                        successAlert.showAndWait();
+                    });
+
+                } catch (IOException e) {
+                    Platform.runLater(() -> {
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Error");
+                        errorAlert.setHeaderText("Could not save game state");
+                        errorAlert.setContentText(e.getMessage());
+                        errorAlert.showAndWait();
+                    });
+                }
+                return null;
+            }
+        };
+        new Thread(saveGameTask).start();
     }
 
+    private GameState getGameState() {
+        String[] buttonState = {
+                Startbtn.getText(),
+                Question1btn.getText(),
+                Halfwaybtn.getText(),
+                Question2btn.getText(),
+                NEbtn1.getText(),
+                NEbtn2.getText(),
+                NEbtn3.getText(),
+                SEbtn1.getText(),
+                SEbtn2.getText(),
+                SEbtn3.getText(),
+                SWbtn1.getText(),
+                SWbtn2.getText(),
+                SWbtn3.getText(),
+                NWbtn1.getText(),
+                NWbtn2.getText(),
+                NWbtn3.getText()
+        };
+
+        return new GameState(buttonState, turn.name(), numberofTurns);
+    }
+
+
     public void loadGame() {
+        if (loadCanceled()) return;
 
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("data.dat"))) {
-            GameState gameState = (GameState) in.readObject();
+        Task<Void> loadGameTask = new Task<>() {
+            @Override
+            protected Void call() {
+                try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("data.dat"))) {
+                    GameState gameState = (GameState) in.readObject();
 
-            String[] buttonState = gameState.getButtonState();
-            Startbtn.setText(buttonState[0]);
-            Question1btn.setText(buttonState[1]);
-            Halfwaybtn.setText(buttonState[2]);
-            Question2btn.setText(buttonState[3]);
-            NEbtn1.setText(buttonState[4]);
-            NEbtn2.setText(buttonState[5]);
-            NEbtn3.setText(buttonState[6]);
-            SEbtn1.setText(buttonState[7]);
-            SEbtn2.setText(buttonState[8]);
-            SEbtn3.setText(buttonState[9]);
-            SWbtn1.setText(buttonState[10]);
-            SWbtn2.setText(buttonState[11]);
-            SWbtn3.setText(buttonState[12]);
-            NWbtn1.setText(buttonState[13]);
-            NWbtn2.setText(buttonState[14]);
-            NWbtn3.setText(buttonState[15]);
-            turn = Letter.valueOf(gameState.getTurnState());
-            numberofTurns = gameState.getNumberOfTurns();
+                    Platform.runLater(() -> {
+                        String[] buttonState = gameState.getButtonState();
+                        Startbtn.setText(buttonState[0]);
+                        Question1btn.setText(buttonState[1]);
+                        Halfwaybtn.setText(buttonState[2]);
+                        Question2btn.setText(buttonState[3]);
+                        NEbtn1.setText(buttonState[4]);
+                        NEbtn2.setText(buttonState[5]);
+                        NEbtn3.setText(buttonState[6]);
+                        SEbtn1.setText(buttonState[7]);
+                        SEbtn2.setText(buttonState[8]);
+                        SEbtn3.setText(buttonState[9]);
+                        SWbtn1.setText(buttonState[10]);
+                        SWbtn2.setText(buttonState[11]);
+                        SWbtn3.setText(buttonState[12]);
+                        NWbtn1.setText(buttonState[13]);
+                        NWbtn2.setText(buttonState[14]);
+                        NWbtn3.setText(buttonState[15]);
+                        turn = Letter.valueOf(gameState.getTurnState());
+                        numberofTurns = gameState.getNumberOfTurns();
+                    });
 
-        } catch (IOException | ClassNotFoundException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Could not load game state");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+                } catch (IOException | ClassNotFoundException e) {
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("Could not load game state");
+                        alert.setContentText(e.getMessage());
+                        alert.showAndWait();
+                    });
+                }
+                return null;
+            }
+        };
+
+        new Thread(loadGameTask).start();
+    }
+
+
+    private boolean loadCanceled() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm load");
+        alert.setHeaderText("Are you sure you want to load this game?");
+        alert.setContentText("This will overwrite the current game state.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.CANCEL) {
+            System.out.println("Load canceled!");
+            return true;
         }
+        return false;
     }
 
     @FXML
@@ -283,37 +406,84 @@ public class HelloController {
     }
 
     public void sameGameXML() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Save");
+        alert.setHeaderText("Save Game Configuration");
+        alert.setContentText("Are you sure you want to save the game configuration?");
 
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.newDocument();
+        ButtonType buttonTypeYes = new ButtonType("Yes");
+        ButtonType buttonTypeNo = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-            Element root = doc.createElement("GameConfiguration");
-            doc.appendChild(root);
+        alert.getButtonTypes().setAll(buttonTypeYes, buttonTypeNo);
 
-            Element turnElement = doc.createElement("Turn");
-            turnElement.appendChild(doc.createTextNode(turn.name()));
-            root.appendChild(turnElement);
+        Optional<ButtonType> result = alert.showAndWait();
 
-            Element numberOfTurnsElement = doc.createElement("NumberOfTurns");
-            numberOfTurnsElement.appendChild(doc.createTextNode(Integer.toString(numberofTurns)));
-            root.appendChild(numberOfTurnsElement);
+        if (result.isPresent() && result.get() == buttonTypeYes) {
+            Task<Void> saveTask = new Task<>() {
+                @Override
+                protected Void call() {
+                    try {
+                        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder builder = factory.newDocumentBuilder();
+                        Document doc = builder.newDocument();
 
-            Element buttonsElement = doc.createElement("Buttons");
-            root.appendChild(buttonsElement);
-            extractedButtonState(doc, buttonsElement);
+                        Element root = doc.createElement("GameConfiguration");
+                        doc.appendChild(root);
 
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File("gameConfiguration.xml"));
-            transformer.transform(source, result);
+                        Element turnElement = doc.createElement("Turn");
+                        turnElement.appendChild(doc.createTextNode(turn.name()));
+                        root.appendChild(turnElement);
 
-        } catch (ParserConfigurationException | TransformerException e) {
-            throw new RuntimeException(e);
+                        Element numberOfTurnsElement = doc.createElement("NumberOfTurns");
+                        numberOfTurnsElement.appendChild(doc.createTextNode(Integer.toString(numberofTurns)));
+                        root.appendChild(numberOfTurnsElement);
+
+                        Element buttonsElement = doc.createElement("Buttons");
+                        root.appendChild(buttonsElement);
+                        extractedButtonState(doc, buttonsElement);
+
+                        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                        Transformer transformer = transformerFactory.newTransformer();
+                        DOMSource source = new DOMSource(doc);
+                        StreamResult resultStream = new StreamResult(new File("gameConfiguration.xml"));
+                        transformer.transform(source, resultStream);
+
+                    } catch (ParserConfigurationException | TransformerException e) {
+                        updateMessage("Error: " + e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Save Successful");
+                        successAlert.setHeaderText("Game Configuration Saved");
+                        successAlert.setContentText("The game configuration has been successfully saved.");
+                        successAlert.showAndWait();
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Throwable ex = getException();
+                    Platform.runLater(() -> {
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Error");
+                        errorAlert.setHeaderText("Could not save game configuration");
+                        errorAlert.setContentText(ex.getMessage());
+                        errorAlert.showAndWait();
+                    });
+                }
+            };
+            new Thread(saveTask).start();
+        } else {
+            System.out.println("Save action cancelled.");
         }
     }
+
 
     private void extractedButtonState(Document doc, Element buttonsElement) {
         addButtonStateToXML(doc, buttonsElement, Startbtn, "Startbtn");
@@ -344,119 +514,138 @@ public class HelloController {
     }
 
     public void loadGameFromXML() {
-        System.out.println("Load Game button pressed");
-        try {
-            File xmlFile = new File("gameConfiguration.xml");
-            if (!xmlFile.exists()) {
-                System.out.println("XML file not found: " + xmlFile.getAbsolutePath());
-                return;
-            }
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Load");
+        alert.setHeaderText("Are you sure you want to load the game?");
+        alert.setContentText("This will overwrite the current game state.");
 
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(xmlFile);
-            doc.getDocumentElement().normalize();
+        Optional<ButtonType> result = alert.showAndWait();
 
-            // Print the entire XML content for debugging
-            System.out.println("XML Content:");
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new StringWriter());
-            transformer.transform(source, result);
-            System.out.println(result.getWriter().toString());
-
-            // Load turn
-            NodeList turnList = doc.getElementsByTagName("Turn");
-            if (turnList.getLength() > 0) {
-                String turnValue = turnList.item(0).getTextContent().trim();
-                turn = Letter.valueOf(turnValue);
-                System.out.println("Turn loaded: " + turn);
-            }
-
-            // Load number of turns
-            NodeList numberOfTurnsList = doc.getElementsByTagName("NumberOfTurns");
-            if (numberOfTurnsList.getLength() > 0) {
-                numberofTurns = Integer.parseInt(numberOfTurnsList.item(0).getTextContent().trim());
-            }
-
-            // Load button texts
-            NodeList buttonList = doc.getElementsByTagName("Button");
-            System.out.println("Number of buttons found: " + buttonList.getLength()); // Debugging output
-
-            if (buttonList.getLength() == 0) {
-                System.out.println("No buttons found in the XML.");
-                return; // Exit if no buttons are found
-            }
-
-            for (int i = 0; i < buttonList.getLength(); i++) {
-                Node node = buttonList.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element buttonElement = (Element) node;
-                    String id = buttonElement.getAttribute("id").trim(); // Trim whitespace
-                    String text = buttonElement.getTextContent().trim(); // Trim whitespace
-
-                    // Check if ID and text are being retrieved correctly
-                    System.out.println("Processing button with ID: " + id); // Debugging output
-                    System.out.println("Button text: '" + text + "'"); // Debugging output for text
-
-                    switch (id) {
-                        case "Startbtn":
-                            Startbtn.setText(text);
-                            break;
-                        case "Question1btn":
-                            Question1btn.setText(text);
-                            break;
-                        case "Halfwaybtn":
-                            Halfwaybtn.setText(text);
-                            break;
-                        case "Question2btn":
-                            Question2btn.setText(text);
-                            break;
-                        case "NEbtn1":
-                            NEbtn1.setText(text);
-                            break;
-                        case "NEbtn2":
-                            NEbtn2.setText(text);
-                            break;
-                        case "NEbtn3":
-                            NEbtn3.setText(text);
-                            break;
-                        case "SEbtn1":
-                            SEbtn1.setText(text);
-                            break;
-                        case "SEbtn2":
-                            SEbtn2.setText(text);
-                            break;
-                        case "SEbtn3":
-                            SEbtn3.setText(text);
-                            break;
-                        case "SWbtn1":
-                            SWbtn1.setText(text);
-                            break;
-                        case "SWbtn2":
-                            SWbtn2.setText(text);
-                            break;
-                        case "SWbtn3":
-                            SWbtn3.setText(text);
-                            break;
-                        case "NWbtn1":
-                            NWbtn1.setText(text);
-                            break;
-                        case "NWbtn2":
-                            NWbtn2.setText(text);
-                            break;
-                        case "NWbtn3":
-                            NWbtn3.setText(text);
-                            break;
-                        default:
-                            System.out.println("Unknown button ID: " + id);
-                    }
-                }
-            }
-        } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
-            throw new RuntimeException(e);
+        if (result.isPresent() && result.get() == ButtonType.CANCEL) {
+            System.out.println("Load Game operation canceled.");
+            return;
         }
-    }
 
+        System.out.println("Load Game button pressed");
+
+        Task<Void> loadGameTask = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    File xmlFile = new File("gameConfiguration.xml");
+                    if (!xmlFile.exists()) {
+                        System.out.println("XML file not found: " + xmlFile.getAbsolutePath());
+                        return null;
+                    }
+
+                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder builder = factory.newDocumentBuilder();
+                    Document doc = builder.parse(xmlFile);
+                    doc.getDocumentElement().normalize();
+
+                    System.out.println("XML Content:");
+                    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                    Transformer transformer = transformerFactory.newTransformer();
+                    DOMSource source = new DOMSource(doc);
+                    StreamResult resultStream = new StreamResult(new StringWriter());
+                    transformer.transform(source, resultStream);
+                    System.out.println(resultStream.getWriter().toString());
+
+                    NodeList turnList = doc.getElementsByTagName("Turn");
+                    if (turnList.getLength() > 0) {
+                        String turnValue = turnList.item(0).getTextContent().trim();
+                        turn = Letter.valueOf(turnValue);
+                        System.out.println("Turn loaded: " + turn);
+                    }
+
+                    NodeList numberOfTurnsList = doc.getElementsByTagName("NumberOfTurns");
+                    if (numberOfTurnsList.getLength() > 0) {
+                        numberofTurns = Integer.parseInt(numberOfTurnsList.item(0).getTextContent().trim());
+                    }
+
+                    NodeList buttonList = doc.getElementsByTagName("Button");
+                    System.out.println("Number of buttons found: " + buttonList.getLength()); // Debugging output
+
+                    if (buttonList.getLength() == 0) {
+                        System.out.println("No buttons found in the XML.");
+                        return null;
+                    }
+
+                    Platform.runLater(() -> {
+                        for (int i = 0; i < buttonList.getLength(); i++) {
+                            Node node = buttonList.item(i);
+                            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                                Element buttonElement = (Element) node;
+                                String id = buttonElement.getAttribute("id").trim(); // Trim whitespace
+                                String text = buttonElement.getTextContent().trim(); // Trim whitespace
+
+                                System.out.println("Processing button with ID: " + id); // Debugging output
+                                System.out.println("Button text: '" + text + "'"); // Debugging output for text
+
+                                switch (id) {
+                                    case "Startbtn":
+                                        Startbtn.setText(text);
+                                        break;
+                                    case "Question1btn":
+                                        Question1btn.setText(text);
+                                        break;
+                                    case "Halfwaybtn":
+                                        Halfwaybtn.setText(text);
+                                        break;
+                                    case "Question2btn":
+                                        Question2btn.setText(text);
+                                        break;
+                                    case "NEbtn1":
+                                        NEbtn1.setText(text);
+                                        break;
+                                    case "NEbtn2":
+                                        NEbtn2.setText(text);
+                                        break;
+                                    case "NEbtn3":
+                                        NEbtn3.setText(text);
+                                        break;
+                                    case "SEbtn1":
+                                        SEbtn1.setText(text);
+                                        break;
+                                    case "SEbtn2":
+                                        SEbtn2.setText(text);
+                                        break;
+                                    case "SEbtn3":
+                                        SEbtn3.setText(text);
+                                        break;
+                                    case "SWbtn1":
+                                        SWbtn1.setText(text);
+                                        break;
+                                    case "SWbtn2":
+                                        SWbtn2.setText(text);
+                                        break;
+                                    case "SWbtn3":
+                                        SWbtn3.setText(text);
+                                        break;
+                                    case "NWbtn1":
+                                        NWbtn1.setText(text);
+                                        break;
+                                    case "NWbtn2":
+                                        NWbtn2.setText(text);
+                                        break;
+                                    case "NWbtn3":
+                                        NWbtn3.setText(text);
+                                        break;
+                                    default:
+                                        System.out.println("Unknown button ID: " + id);
+                                }
+                            }
+                        }
+                    });
+
+                } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+                return null;
+            }
+        };
+        // Execute the task in a new thread
+        new Thread(loadGameTask).start();
+    }
 }
