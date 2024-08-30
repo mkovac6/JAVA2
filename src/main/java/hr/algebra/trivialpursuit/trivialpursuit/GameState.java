@@ -26,4 +26,16 @@ public class GameState implements Serializable {
     public int getNumberOfTurns() {
         return numberOfTurns;
     }
+
+    public void setButtonState(String[] buttonState) {
+        this.buttonState = buttonState;
+    }
+
+    public void setTurnState(String turnState) {
+        this.turnState = turnState;
+    }
+
+    public void setNumberOfTurns() {
+        this.numberOfTurns++;
+    }
 }
