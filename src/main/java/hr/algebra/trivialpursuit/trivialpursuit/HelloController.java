@@ -20,6 +20,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Optional;
 
 public class HelloController {
@@ -71,7 +73,17 @@ public class HelloController {
 
     private static Integer numberofTurns = 0;
 
+    private Socket socket;
+    private ObjectOutputStream output;
+
     public void initialize() {
+        try {
+            socket = new Socket("localhost", 12345);
+            output = new ObjectOutputStream(socket.getOutputStream());
+            listenForMessages();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         turn = Letter.A;
         numberofTurns = 0;
     }
@@ -261,12 +273,35 @@ public class HelloController {
         RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
     }
 
+    @FXML
     public void sendMessage() {
         String message = inputField.getText();
         if (!message.isEmpty()) {
-            chatArea.appendText("You: " + message + "\n");
-            inputField.clear();
+            try {
+                output.writeObject(message);
+                output.flush();
+                inputField.clear();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+    }
+
+    private void listenForMessages() {
+        new Thread(() -> {
+            try (ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream())) {
+                Object obj;
+                while ((obj = inputStream.readObject()) != null) {
+                    appendMessage(obj.toString());
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    private void appendMessage(String message) {
+        javafx.application.Platform.runLater(() -> chatArea.appendText(message + "\n"));
     }
 
     public void saveGame() {
