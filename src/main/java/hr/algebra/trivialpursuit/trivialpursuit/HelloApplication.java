@@ -5,67 +5,77 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class HelloApplication extends Application {
-
-    private PrintWriter out;
-    private BufferedReader in;
-    private Socket socket;
+    private ObjectOutputStream output;
+    private ObjectInputStream input;
 
     @Override
     public void start(Stage stage) throws IOException {
+        // Load the FXML view
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 800);
         stage.setTitle("Trivial Pursuit!");
         stage.setScene(scene);
         stage.show();
 
-        new Thread(this::testConnection).start();
+        // Connect to the server and send a message
+        connectToServerAndSendMessage();
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
-
-    private void testConnection() {
+    private void connectToServerAndSendMessage() {
         try {
-            socket = new Socket("localhost", 12345);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // Connect to the server
+            Socket socket = new Socket("localhost", 12345);
+            output = new ObjectOutputStream(socket.getOutputStream());
+            input = new ObjectInputStream(socket.getInputStream());
 
-            out.println("Hello from client!");
+            // Send a hardcoded message to the server
+            sendMessage("Hello from the client!");
 
-            new Thread(this::listenForMessages).start();
+            // Optionally, you can listen for responses from the server
+            listenForMessages();
 
         } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void listenForMessages() {
-        String serverMessage;
-        try {
-            while ((serverMessage = in.readLine()) != null) {
-                System.out.println("Server response: " + serverMessage);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        new Thread(() -> {
             try {
-                if (in != null) in.close();
-                if (out != null) out.close();
-                if (socket != null && !socket.isClosed()) socket.close();
+                Object obj;
+                while ((obj = input.readObject()) != null) {
+                    System.out.println("Received from server: " + obj.toString());
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void sendMessage(String content) {
+        if (output != null) {
+            try {
+                // Just sending the String directly, no need for a Message object
+                output.writeObject(content);
+                output.flush();
+                System.out.println("Sent to server: " + content);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    // Main method to launch the application
+    public static void main(String[] args) {
+        launch();
     }
 }
