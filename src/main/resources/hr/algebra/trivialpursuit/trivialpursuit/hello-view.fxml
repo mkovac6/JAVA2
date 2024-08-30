@@ -4,12 +4,14 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Line?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.algebra.trivialpursuit.trivialpursuit.HelloController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="hr.algebra.trivialpursuit.trivialpursuit.HelloController">
    <children>
       <AnchorPane prefHeight="800.0" prefWidth="800.0">
          <children>
@@ -36,7 +38,7 @@
             <Button fx:id="Question2btn" layoutX="78.0" layoutY="355.0" mnemonicParsing="false" onAction="#questionButtonPressed" prefHeight="90.0" prefWidth="45.0" text="QUESTION" />
             <Button fx:id="Halfwaybtn" layoutX="355.0" layoutY="677.0" mnemonicParsing="false" onAction="#questionButtonPressed" prefHeight="45.0" prefWidth="90.0" text="HALFWAY" />
             <Button fx:id="Rollbtn" layoutX="34.0" layoutY="654.0" mnemonicParsing="false" onAction="#RollbuttonPressed" prefHeight="100.0" prefWidth="100.0" text="Roll" />
-            <MenuBar layoutY="2.0" prefHeight="25.0" prefWidth="800.0">
+            <MenuBar layoutY="2.0" prefHeight="25.0" prefWidth="1000.0">
               <menus>
                 <Menu mnemonicParsing="false" text="Game">
                   <items>
@@ -58,6 +60,9 @@
                   </Menu>
               </menus>
             </MenuBar>
+            <TextArea fx:id="chatArea" editable="false" layoutX="763.0" layoutY="99.0" prefHeight="486.0" prefWidth="200.0" wrapText="true" />
+            <TextField fx:id="inputField" layoutX="763.0" layoutY="584.0" prefHeight="59.0" prefWidth="200.0" promptText="Type your message here" />
+            <Button layoutX="831.0" layoutY="658.0" mnemonicParsing="false" onAction="#sendMessage" prefHeight="45.0" prefWidth="64.0" text="Send" />
          </children>
       </AnchorPane>
    </children>

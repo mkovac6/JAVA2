@@ -62,6 +62,10 @@ public class HelloController {
     private Button NWbtn2;
     @FXML
     private Button NWbtn3;
+    @FXML
+    private TextArea chatArea;
+    @FXML
+    private TextField inputField;
 
     private static Letter turn;
 
@@ -255,6 +259,14 @@ public class HelloController {
         double random = Math.random() * (max - min + 1) + min;
         Button RollbuttonPressed = (Button) event.getSource();
         RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
+    }
+
+    public void sendMessage() {
+        String message = inputField.getText();
+        if (!message.isEmpty()) {
+            chatArea.appendText("You: " + message + "\n");
+            inputField.clear();
+        }
     }
 
     public void saveGame() {

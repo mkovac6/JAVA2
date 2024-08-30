@@ -19,7 +19,7 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         // Load the FXML view
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 800);
+        Scene scene = new Scene(fxmlLoader.load(), 1000, 800);
         stage.setTitle("Trivial Pursuit!");
         stage.setScene(scene);
         stage.show();
