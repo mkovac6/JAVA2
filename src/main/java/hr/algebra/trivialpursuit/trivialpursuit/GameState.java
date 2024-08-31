@@ -1,6 +1,7 @@
 package hr.algebra.trivialpursuit.trivialpursuit;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class GameState implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -35,7 +36,20 @@ public class GameState implements Serializable {
         this.turnState = turnState;
     }
 
-    public void setNumberOfTurns() {
+    public void setNumberOfTurns(int numberOfTurns) {
+        this.numberOfTurns = numberOfTurns;
+    }
+
+    public void incrementNumberOfTurns() {
         this.numberOfTurns++;
+    }
+
+    @Override
+    public String toString() {
+        return "GameState{" +
+                "buttonState=" + Arrays.toString(buttonState) +
+                ", turnState='" + turnState + '\'' +
+                ", numberOfTurns=" + numberOfTurns +
+                '}';
     }
 }

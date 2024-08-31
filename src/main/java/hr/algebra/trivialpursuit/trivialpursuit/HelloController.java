@@ -21,11 +21,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Optional;
 
 public class HelloController {
-
     /*
      * NE = North East
      * SE = South East
@@ -75,11 +73,13 @@ public class HelloController {
 
     private Socket socket;
     private ObjectOutputStream output;
+    private NetworkUtils networkUtils;
 
     public void initialize() {
         try {
             socket = new Socket("localhost", 12345);
             output = new ObjectOutputStream(socket.getOutputStream());
+            networkUtils = NetworkUtils.getInstance();
             listenForMessages();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -118,6 +118,8 @@ public class HelloController {
             buttonPressed.setText(turn.name());
             numberofTurns++;
             turn = turn == Letter.A ? Letter.B : Letter.A;
+
+            networkUtils.sendGameState(getGameState());
         }
     }
 
@@ -292,7 +294,33 @@ public class HelloController {
             try (ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream())) {
                 Object obj;
                 while ((obj = inputStream.readObject()) != null) {
-                    appendMessage(obj.toString());
+                    if (obj instanceof String){
+                        appendMessage(obj.toString());
+                    } else if (obj instanceof GameState) {
+                        GameState gameState = (GameState) obj;
+                        Platform.runLater(() -> {
+                            String[] buttonState = gameState.getButtonState();
+                            Startbtn.setText(buttonState[0]);
+                            Question1btn.setText(buttonState[1]);
+                            Halfwaybtn.setText(buttonState[2]);
+                            Question2btn.setText(buttonState[3]);
+                            NEbtn1.setText(buttonState[4]);
+                            NEbtn2.setText(buttonState[5]);
+                            NEbtn3.setText(buttonState[6]);
+                            SEbtn1.setText(buttonState[7]);
+                            SEbtn2.setText(buttonState[8]);
+                            SEbtn3.setText(buttonState[9]);
+                            SWbtn1.setText(buttonState[10]);
+                            SWbtn2.setText(buttonState[11]);
+                            SWbtn3.setText(buttonState[12]);
+                            NWbtn1.setText(buttonState[13]);
+                            NWbtn2.setText(buttonState[14]);
+                            NWbtn3.setText(buttonState[15]);
+                            turn = Letter.valueOf(gameState.getTurnState());
+                            numberofTurns = gameState.getNumberOfTurns();
+                        });
+                    }
+
                 }
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -345,7 +373,7 @@ public class HelloController {
         new Thread(saveGameTask).start();
     }
 
-    private GameState getGameState() {
+    public GameState getGameState() {
         String[] buttonState = {
                 Startbtn.getText(),
                 Question1btn.getText(),

@@ -12,8 +12,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class HelloApplication extends Application {
-    private ObjectOutputStream output;
-    private ObjectInputStream input;
+    private NetworkUtils networkUtils;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -24,54 +23,10 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
 
+
         // Connect to the server and send a message
-        connectToServerAndSendMessage();
-    }
-
-    private void connectToServerAndSendMessage() {
-        try {
-            // Connect to the server
-            Socket socket = new Socket("localhost", 12345);
-            output = new ObjectOutputStream(socket.getOutputStream());
-            input = new ObjectInputStream(socket.getInputStream());
-
-            // Send a hardcoded message to the server
-            sendMessage("Hello from the client!");
-
-            // Optionally, you can listen for responses from the server
-            listenForMessages();
-
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void listenForMessages() {
-        new Thread(() -> {
-            try {
-                Object obj;
-                while ((obj = input.readObject()) != null) {
-                    System.out.println("Received from server: " + obj.toString());
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    private void sendMessage(String content) {
-        if (output != null) {
-            try {
-                // Just sending the String directly, no need for a Message object
-                output.writeObject(content);
-                output.flush();
-                System.out.println("Sent to server: " + content);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        networkUtils = NetworkUtils.getInstance();
+        networkUtils.connectToServerAndSendMessage();
     }
 
     // Main method to launch the application
