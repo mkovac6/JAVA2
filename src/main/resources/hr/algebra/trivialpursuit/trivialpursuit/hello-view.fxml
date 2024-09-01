@@ -54,7 +54,7 @@
                   </Menu>
                   <Menu mnemonicParsing="false" text="XML">
                      <items>
-                        <MenuItem mnemonicParsing="false" onAction="#sameGameXML" text="Save Config to XML" />
+                        <MenuItem mnemonicParsing="false" onAction="#saveGameXML1" text="Save Config to XML" />
                         <MenuItem mnemonicParsing="false" onAction="#loadGameFromXML" text="Load from XML" />
                      </items>
                   </Menu>

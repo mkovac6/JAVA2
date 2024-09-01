@@ -74,18 +74,41 @@ public class HelloController {
     private Socket socket;
     private ObjectOutputStream output;
     private NetworkUtils networkUtils;
+    private ButtonManager buttonManager;
 
     public void initialize() {
         try {
             socket = new Socket("localhost", 12345);
             output = new ObjectOutputStream(socket.getOutputStream());
             networkUtils = NetworkUtils.getInstance();
+            buttonManager = new ButtonManager();
+            initializeButtons();
             listenForMessages();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         turn = Letter.A;
         numberofTurns = 0;
+    }
+
+    private void initializeButtons() {
+        buttonManager.addButton("Startbtn", Startbtn);
+        buttonManager.addButton("Question1btn", Question1btn);
+        buttonManager.addButton("Halfwaybtn", Halfwaybtn);
+        buttonManager.addButton("Question2btn", Question2btn);
+        buttonManager.addButton("NEbtn1", NEbtn1);
+        buttonManager.addButton("NEbtn2", NEbtn2);
+        buttonManager.addButton("NEbtn3", NEbtn3);
+        buttonManager.addButton("SEbtn1", SEbtn1);
+        buttonManager.addButton("SEbtn2", SEbtn2);
+        buttonManager.addButton("SEbtn3", SEbtn3);
+        buttonManager.addButton("SWbtn1", SWbtn1);
+        buttonManager.addButton("SWbtn2", SWbtn2);
+        buttonManager.addButton("SWbtn3", SWbtn3);
+        buttonManager.addButton("NWbtn1", NWbtn1);
+        buttonManager.addButton("NWbtn2", NWbtn2);
+        buttonManager.addButton("NWbtn3", NWbtn3);
+        buttonManager.addButton("SWbtn1", SWbtn2);
     }
 
     @FXML
@@ -133,6 +156,7 @@ public class HelloController {
             turn = turn == Letter.A ? Letter.B : Letter.A;
             numberofTurns++;
 
+
             Task<String> questionTask = new Task<>() {
                 @Override
                 protected String call() {
@@ -158,6 +182,7 @@ public class HelloController {
                     });
                 }
             };
+            networkUtils.sendGameState(getGameState());
             new Thread(questionTask).start();
         }
     }
@@ -235,6 +260,7 @@ public class HelloController {
                     });
                 }
             };
+            networkUtils.sendGameState(getGameState());
             new Thread(questionTask).start();
         }
     }
@@ -259,20 +285,24 @@ public class HelloController {
     }
 
     public void winner() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("ENDGAME");
-        alert.setHeaderText(null);
-        alert.setContentText("Congratulations, you won!");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Game over");
+        alert.setHeaderText("Congratulations, you won!");
+        alert.setContentText("Would you like to start a new game?");
 
-        alert.showAndWait();
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            newGame();
+        }
     }
 
     public void RollbuttonPressed(Event event) {
         int min = 1;
-        int max = 6;
+        int max = 5;
         double random = Math.random() * (max - min + 1) + min;
         Button RollbuttonPressed = (Button) event.getSource();
         RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
+        networkUtils.sendGameState(getGameState());
     }
 
     @FXML
@@ -294,33 +324,11 @@ public class HelloController {
             try (ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream())) {
                 Object obj;
                 while ((obj = inputStream.readObject()) != null) {
-                    if (obj instanceof String){
+                    if (obj instanceof String) {
                         appendMessage(obj.toString());
-                    } else if (obj instanceof GameState) {
-                        GameState gameState = (GameState) obj;
-                        Platform.runLater(() -> {
-                            String[] buttonState = gameState.getButtonState();
-                            Startbtn.setText(buttonState[0]);
-                            Question1btn.setText(buttonState[1]);
-                            Halfwaybtn.setText(buttonState[2]);
-                            Question2btn.setText(buttonState[3]);
-                            NEbtn1.setText(buttonState[4]);
-                            NEbtn2.setText(buttonState[5]);
-                            NEbtn3.setText(buttonState[6]);
-                            SEbtn1.setText(buttonState[7]);
-                            SEbtn2.setText(buttonState[8]);
-                            SEbtn3.setText(buttonState[9]);
-                            SWbtn1.setText(buttonState[10]);
-                            SWbtn2.setText(buttonState[11]);
-                            SWbtn3.setText(buttonState[12]);
-                            NWbtn1.setText(buttonState[13]);
-                            NWbtn2.setText(buttonState[14]);
-                            NWbtn3.setText(buttonState[15]);
-                            turn = Letter.valueOf(gameState.getTurnState());
-                            numberofTurns = gameState.getNumberOfTurns();
-                        });
+                    } else if (obj instanceof GameState gameState) {
+                        loadGameState(gameState);
                     }
-
                 }
             } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -406,27 +414,7 @@ public class HelloController {
                 try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("data.dat"))) {
                     GameState gameState = (GameState) in.readObject();
 
-                    Platform.runLater(() -> {
-                        String[] buttonState = gameState.getButtonState();
-                        Startbtn.setText(buttonState[0]);
-                        Question1btn.setText(buttonState[1]);
-                        Halfwaybtn.setText(buttonState[2]);
-                        Question2btn.setText(buttonState[3]);
-                        NEbtn1.setText(buttonState[4]);
-                        NEbtn2.setText(buttonState[5]);
-                        NEbtn3.setText(buttonState[6]);
-                        SEbtn1.setText(buttonState[7]);
-                        SEbtn2.setText(buttonState[8]);
-                        SEbtn3.setText(buttonState[9]);
-                        SWbtn1.setText(buttonState[10]);
-                        SWbtn2.setText(buttonState[11]);
-                        SWbtn3.setText(buttonState[12]);
-                        NWbtn1.setText(buttonState[13]);
-                        NWbtn2.setText(buttonState[14]);
-                        NWbtn3.setText(buttonState[15]);
-                        turn = Letter.valueOf(gameState.getTurnState());
-                        numberofTurns = gameState.getNumberOfTurns();
-                    });
+                    loadGameState(gameState);
 
                 } catch (IOException | ClassNotFoundException e) {
                     Platform.runLater(() -> {
@@ -440,8 +428,31 @@ public class HelloController {
                 return null;
             }
         };
-
         new Thread(loadGameTask).start();
+    }
+
+    private void loadGameState(GameState gameState) {
+        Platform.runLater(() -> {
+            String[] buttonState = gameState.getButtonState();
+            Startbtn.setText(buttonState[0]);
+            Question1btn.setText(buttonState[1]);
+            Halfwaybtn.setText(buttonState[2]);
+            Question2btn.setText(buttonState[3]);
+            NEbtn1.setText(buttonState[4]);
+            NEbtn2.setText(buttonState[5]);
+            NEbtn3.setText(buttonState[6]);
+            SEbtn1.setText(buttonState[7]);
+            SEbtn2.setText(buttonState[8]);
+            SEbtn3.setText(buttonState[9]);
+            SWbtn1.setText(buttonState[10]);
+            SWbtn2.setText(buttonState[11]);
+            SWbtn3.setText(buttonState[12]);
+            NWbtn1.setText(buttonState[13]);
+            NWbtn2.setText(buttonState[14]);
+            NWbtn3.setText(buttonState[15]);
+            turn = Letter.valueOf(gameState.getTurnState());
+            numberofTurns = gameState.getNumberOfTurns();
+        });
     }
 
 
@@ -477,7 +488,90 @@ public class HelloController {
         alert.showAndWait();
     }
 
-    public void sameGameXML() {
+    public void saveGameXML1() {
+        Alert alert = createConfirmationDialog();
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.YES) {
+            Platform.runLater(() -> {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Save Successful");
+                successAlert.setHeaderText("Game Configuration Saved");
+                successAlert.setContentText("The game configuration has been successfully saved.");
+                successAlert.showAndWait();
+            });
+            Task<Void> saveTask = createSaveTask();
+
+            new Thread(saveTask).start();
+        }
+    }
+
+    private Alert createConfirmationDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Save");
+        alert.setHeaderText("Save Game Configuration");
+        alert.setContentText("Are you sure you want to save the game configuration?");
+        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+        return alert;
+    }
+
+    private Task<Void> createSaveTask() {
+        return new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    Document doc = createXMLDocument();
+                    saveXMLDocument(doc);
+                } catch (Exception e) {
+                    updateMessage("Error: " + e.getMessage());
+                    showErrorDialog(e.getMessage());
+                }
+                return null;
+            }
+        };
+    }
+
+    private Document createXMLDocument() throws ParserConfigurationException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.newDocument();
+
+        Element root = doc.createElement("GameConfiguration");
+        doc.appendChild(root);
+
+        Element turnElement = doc.createElement("Turn");
+        turnElement.appendChild(doc.createTextNode(turn.name()));
+        root.appendChild(turnElement);
+
+        Element numberOfTurnsElement = doc.createElement("NumberOfTurns");
+        numberOfTurnsElement.appendChild(doc.createTextNode(Integer.toString(numberofTurns)));
+        root.appendChild(numberOfTurnsElement);
+
+        Element buttonsElement = doc.createElement("Buttons");
+        root.appendChild(buttonsElement);
+        extractedButtonState(doc, buttonsElement);
+
+        return doc;
+    }
+
+    private void saveXMLDocument(Document doc) throws TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        DOMSource source = new DOMSource(doc);
+        StreamResult resultStream = new StreamResult(new File("gameConfiguration.xml"));
+        transformer.transform(source, resultStream);
+    }
+
+    private void showErrorDialog(String message) {
+        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+        errorAlert.setTitle("Error Saving Configuration");
+        errorAlert.setHeaderText(null);
+        errorAlert.setContentText(message);
+        errorAlert.showAndWait();
+    }
+
+    /*public void sameGameXML() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Save");
         alert.setHeaderText("Save Game Configuration");
@@ -554,27 +648,24 @@ public class HelloController {
         } else {
             System.out.println("Save action cancelled.");
         }
-    }
+    }*/
 
 
     private void extractedButtonState(Document doc, Element buttonsElement) {
-        addButtonStateToXML(doc, buttonsElement, Startbtn, "Startbtn");
-        addButtonStateToXML(doc, buttonsElement, Question1btn, "Question1btn");
-        addButtonStateToXML(doc, buttonsElement, Halfwaybtn, "Halfwaybtn");
-        addButtonStateToXML(doc, buttonsElement, Question2btn, "Question2btn");
-        addButtonStateToXML(doc, buttonsElement, NEbtn1, "NEbtn1");
-        addButtonStateToXML(doc, buttonsElement, NEbtn2, "NEbtn2");
-        addButtonStateToXML(doc, buttonsElement, NEbtn3, "NEbtn3");
-        addButtonStateToXML(doc, buttonsElement, SEbtn1, "SEbtn1");
-        addButtonStateToXML(doc, buttonsElement, SEbtn2, "SEbtn2");
-        addButtonStateToXML(doc, buttonsElement, SEbtn3, "SEbtn3");
-        addButtonStateToXML(doc, buttonsElement, SWbtn1, "SWbtn1");
-        addButtonStateToXML(doc, buttonsElement, SWbtn2, "SWbtn2");
-        addButtonStateToXML(doc, buttonsElement, SWbtn3, "SWbtn3");
-        addButtonStateToXML(doc, buttonsElement, NWbtn1, "NWbtn1");
-        addButtonStateToXML(doc, buttonsElement, NWbtn2, "NWbtn2");
-        addButtonStateToXML(doc, buttonsElement, NWbtn3, "NWbtn3");
+        // Array of buttons and their corresponding IDs
+        Button[] buttons = {Startbtn, Question1btn, Halfwaybtn, Question2btn,
+                NEbtn1, NEbtn2, NEbtn3, SEbtn1, SEbtn2, SEbtn3,
+                SWbtn1, SWbtn2, SWbtn3, NWbtn1, NWbtn2, NWbtn3};
+
+        String[] buttonIds = {"Startbtn", "Question1btn", "Halfwaybtn", "Question2btn",
+                "NEbtn1", "NEbtn2", "NEbtn3", "SEbtn1", "SEbtn2", "SEbtn3",
+                "SWbtn1", "SWbtn2", "SWbtn3", "NWbtn1", "NWbtn2", "NWbtn3"};
+
+        for (int i = 0; i < buttons.length; i++) {
+            addButtonStateToXML(doc, buttonsElement, buttons[i], buttonIds[i]);
+        }
     }
+
 
     private void addButtonStateToXML(Document doc, Element parent, Button button, String id) {
 
@@ -654,62 +745,10 @@ public class HelloController {
                                 System.out.println("Processing button with ID: " + id); // Debugging output
                                 System.out.println("Button text: '" + text + "'"); // Debugging output for text
 
-                                switch (id) {
-                                    case "Startbtn":
-                                        Startbtn.setText(text);
-                                        break;
-                                    case "Question1btn":
-                                        Question1btn.setText(text);
-                                        break;
-                                    case "Halfwaybtn":
-                                        Halfwaybtn.setText(text);
-                                        break;
-                                    case "Question2btn":
-                                        Question2btn.setText(text);
-                                        break;
-                                    case "NEbtn1":
-                                        NEbtn1.setText(text);
-                                        break;
-                                    case "NEbtn2":
-                                        NEbtn2.setText(text);
-                                        break;
-                                    case "NEbtn3":
-                                        NEbtn3.setText(text);
-                                        break;
-                                    case "SEbtn1":
-                                        SEbtn1.setText(text);
-                                        break;
-                                    case "SEbtn2":
-                                        SEbtn2.setText(text);
-                                        break;
-                                    case "SEbtn3":
-                                        SEbtn3.setText(text);
-                                        break;
-                                    case "SWbtn1":
-                                        SWbtn1.setText(text);
-                                        break;
-                                    case "SWbtn2":
-                                        SWbtn2.setText(text);
-                                        break;
-                                    case "SWbtn3":
-                                        SWbtn3.setText(text);
-                                        break;
-                                    case "NWbtn1":
-                                        NWbtn1.setText(text);
-                                        break;
-                                    case "NWbtn2":
-                                        NWbtn2.setText(text);
-                                        break;
-                                    case "NWbtn3":
-                                        NWbtn3.setText(text);
-                                        break;
-                                    default:
-                                        System.out.println("Unknown button ID: " + id);
-                                }
+                                buttonManager.setButtonText(id, text);
                             }
                         }
                     });
-
                 } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
                     e.printStackTrace();
                     throw new RuntimeException(e);
