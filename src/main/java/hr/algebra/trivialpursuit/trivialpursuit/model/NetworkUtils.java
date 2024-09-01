@@ -1,4 +1,6 @@
-package hr.algebra.trivialpursuit.trivialpursuit;
+package hr.algebra.trivialpursuit.trivialpursuit.model;
+
+import hr.algebra.trivialpursuit.trivialpursuit.GameState;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

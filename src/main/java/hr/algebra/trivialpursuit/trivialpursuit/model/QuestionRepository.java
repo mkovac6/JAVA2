@@ -1,4 +1,4 @@
-package hr.algebra.trivialpursuit.trivialpursuit;
+package hr.algebra.trivialpursuit.trivialpursuit.model;
 
 import java.util.HashMap;
 import java.util.Map;

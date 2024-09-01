@@ -1,4 +1,6 @@
-package hr.algebra.trivialpursuit.trivialpursuit;
+package hr.algebra.trivialpursuit.trivialpursuit.model;
+
+import hr.algebra.trivialpursuit.trivialpursuit.view.HelloController;
 
 import java.lang.reflect.Method;
 

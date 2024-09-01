@@ -1,15 +1,12 @@
 package hr.algebra.trivialpursuit.trivialpursuit;
 
+import hr.algebra.trivialpursuit.trivialpursuit.model.NetworkUtils;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class HelloApplication extends Application {
     private NetworkUtils networkUtils;

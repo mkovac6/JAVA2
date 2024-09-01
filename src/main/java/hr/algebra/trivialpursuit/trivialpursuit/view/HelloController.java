@@ -1,5 +1,7 @@
-package hr.algebra.trivialpursuit.trivialpursuit;
+package hr.algebra.trivialpursuit.trivialpursuit.view;
 
+import hr.algebra.trivialpursuit.trivialpursuit.GameState;
+import hr.algebra.trivialpursuit.trivialpursuit.model.*;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -131,6 +133,7 @@ public class HelloController {
         NWbtn3.setText("");
         numberofTurns = 0;
         turn = Letter.A;
+        networkUtils.sendGameState(getGameState());
     }
 
     public void buttonPressed(Event event) {
@@ -448,6 +451,7 @@ public class HelloController {
                 return null;
             }
         };
+        networkUtils.sendGameState(getGameState());
         new Thread(loadGameTask).start();
     }
 
@@ -776,7 +780,7 @@ public class HelloController {
                 return null;
             }
         };
-        // Execute the task in a new thread
+        networkUtils.sendGameState(getGameState());
         new Thread(loadGameTask).start();
     }
 }
