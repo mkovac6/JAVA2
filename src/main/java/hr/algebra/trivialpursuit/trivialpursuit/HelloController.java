@@ -199,12 +199,22 @@ public class HelloController {
             QuestionRepository repository = new QuestionRepository();
             if (repository.isAnswerCorrect(question, playerAnswer)) {
                 correct();
+                sendMessageToChat("Player " + turn.name() + " answered a question correctly!");
             } else {
                 incorrect();
+                sendMessageToChat("Player " + turn.name() + " answered a question incorrectly!");
             }
         });
     }
 
+    private void sendMessageToChat(String chatMessage) {
+        try {
+            output.writeObject(chatMessage);
+            output.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void correct() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -278,10 +288,13 @@ public class HelloController {
 
             if (isCorrect) {
                 winner();
+                sendMessageToChat("Player " + turn.name() + " has answered the final question correctly and won the game!" + "\n" + "Starting new game...");
             } else {
                 incorrect();
+                sendMessageToChat("Player " + turn.name() + " answered the final question incorrectly!");
             }
         });
+        networkUtils.sendGameState(getGameState());
     }
 
     public void winner() {
@@ -296,14 +309,21 @@ public class HelloController {
         }
     }
 
+    @FXML
     public void RollbuttonPressed(Event event) {
         int min = 1;
         int max = 5;
         double random = Math.random() * (max - min + 1) + min;
-        Button RollbuttonPressed = (Button) event.getSource();
-        RollbuttonPressed.setText("Roll: " + (int) Math.round(random));
+        Button rollButton = (Button) event.getSource();
+        int rolledValue = (int) Math.round(random);
+        rollButton.setText("Roll: " + rolledValue);
+
+        String message = "Player rolled: " + rolledValue;
+        networkUtils.sendGameState(getGameState());
+        networkUtils.sendMessage(message);
         networkUtils.sendGameState(getGameState());
     }
+
 
     @FXML
     public void sendMessage() {
