@@ -1,3 +1,5 @@
+import hr.algebra.trivialpursuit.trivialpursuit.GameState;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -31,13 +33,23 @@ class ObjectClientHandler extends Thread {
 
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
             Object obj;
-            while ((obj = input.readObject()) != null) {
-                System.out.println(playerName + " sent: " + obj);
-                broadcastMessage(playerName + " says: " + obj);
-                out.flush();
+            while (true) {
+                try {
+                    obj = input.readObject();
+                    if (obj instanceof String) {
+                        System.out.println(playerName + "sent: " + obj);
+                        broadcastMessage(playerName + " sent " + obj);
+                    } else if (obj instanceof GameState) {
+                        GameState state = (GameState) obj;
+                        System.out.println(playerName + "updated their state: " + state);
+                        broadcastGameState(state);
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 if (socket != null) {
@@ -47,6 +59,17 @@ class ObjectClientHandler extends Thread {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void broadcastGameState(GameState state) {
+        for (ObjectClientHandler client : clients) {
+            try {
+                client.out.writeObject(state);
+                client.out.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
