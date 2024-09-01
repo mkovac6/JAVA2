@@ -1,4 +1,4 @@
-package hr.algebra.trivialpursuit.trivialpursuit.model;
+package hr.algebra.trivialpursuit.trivialpursuit.utils;
 
 import hr.algebra.trivialpursuit.trivialpursuit.view.HelloController;
 

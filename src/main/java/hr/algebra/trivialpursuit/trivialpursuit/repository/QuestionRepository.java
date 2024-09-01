@@ -1,4 +1,4 @@
-package hr.algebra.trivialpursuit.trivialpursuit.model;
+package hr.algebra.trivialpursuit.trivialpursuit.repository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,6 @@ public class QuestionRepository {
 
         int index = randGenerator.nextInt(questions.size() - 1);
         return (String) questions.keySet().toArray()[index];
-
     }
 
     public Boolean isAnswerCorrect(final String question, final String playerAnswer) {

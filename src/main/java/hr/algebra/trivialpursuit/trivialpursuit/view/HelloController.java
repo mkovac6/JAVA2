@@ -1,7 +1,9 @@
 package hr.algebra.trivialpursuit.trivialpursuit.view;
 
 import hr.algebra.trivialpursuit.trivialpursuit.GameState;
-import hr.algebra.trivialpursuit.trivialpursuit.model.*;
+import hr.algebra.trivialpursuit.trivialpursuit.repository.QuestionRepository;
+import hr.algebra.trivialpursuit.trivialpursuit.utils.DocumentationGen;
+import hr.algebra.trivialpursuit.trivialpursuit.utils.NetworkUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.Event;

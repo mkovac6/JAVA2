@@ -1,6 +1,6 @@
 package hr.algebra.trivialpursuit.trivialpursuit;
 
-import hr.algebra.trivialpursuit.trivialpursuit.model.NetworkUtils;
+import hr.algebra.trivialpursuit.trivialpursuit.utils.NetworkUtils;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

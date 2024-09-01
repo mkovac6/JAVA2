@@ -1,4 +1,4 @@
-package hr.algebra.trivialpursuit.trivialpursuit.model;
+package hr.algebra.trivialpursuit.trivialpursuit.view;
 
 import javafx.scene.control.Button;
 
