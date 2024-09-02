@@ -140,59 +140,50 @@ public class HelloController {
 
     public void buttonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
-        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
-                || buttonPressed.getText().contains("QUESTION")
-                || buttonPressed.getText().contains("HALFWAY")) {
-            buttonPressed.setText(turn.name());
-            numberofTurns++;
-            turn = turn == Letter.A ? Letter.B : Letter.A;
+        buttonPressed.setText(turn.name());
+        numberofTurns++;
+        turn = turn == Letter.A ? Letter.B : Letter.A;
 
-            networkUtils.sendGameState(getGameState());
-        }
+        networkUtils.sendGameState(getGameState());
+
     }
 
     public void questionButtonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
 
-        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
-                || buttonPressed.getText().contains("QUESTION")
-                || buttonPressed.getText().contains("HALFWAY")) {
-            buttonPressed.setText(turn.name());
-            turn = turn == Letter.A ? Letter.B : Letter.A;
-            numberofTurns++;
+        buttonPressed.setText(turn.name());
+        turn = turn == Letter.A ? Letter.B : Letter.A;
+        numberofTurns++;
 
+        Task<String> questionTask = new Task<>() {
+            @Override
+            protected String call() {
+                QuestionRepository repository = new QuestionRepository();
+                return repository.getRandomQuestion();
+            }
 
-            Task<String> questionTask = new Task<>() {
-                @Override
-                protected String call() {
-                    QuestionRepository repository = new QuestionRepository();
-                    return repository.getRandomQuestion();
-                }
+            @Override
+            protected void succeeded() {
+                String question = getValue();
+                showQuestionDialog(question);
+            }
 
-                @Override
-                protected void succeeded() {
-                    String question = getValue();
-                    showQuestionDialog(question);
-                }
-
-                @Override
-                protected void failed() {
-                    Throwable ex = getException();
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Could not retrieve question");
-                        alert.setContentText(ex.getMessage());
-                        alert.showAndWait();
-                    });
-                }
-            };
-            networkUtils.sendGameState(getGameState());
-            new Thread(questionTask).start();
-        }
+            @Override
+            protected void failed() {
+                Throwable ex = getException();
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText("Could not retrieve question");
+                    alert.setContentText(ex.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        };
+        networkUtils.sendGameState(getGameState());
+        new Thread(questionTask).start();
     }
 
-    // Method to show the question dialog
     private void showQuestionDialog(String question) {
         TextInputDialog dialog = new TextInputDialog("Answer");
         dialog.setTitle("QUESTION");
@@ -242,42 +233,39 @@ public class HelloController {
     public void winnerButtonPressed(Event event) {
         Button buttonPressed = (Button) event.getSource();
 
-        if (buttonPressed.getText().isBlank() || buttonPressed.getText().contains("START")
-                || buttonPressed.getText().contains("QUESTION")
-                || buttonPressed.getText().contains("HALFWAY")) {
 
-            buttonPressed.setText(turn.name());
-            turn = turn == Letter.A ? Letter.B : Letter.A;
-            numberofTurns++;
+        buttonPressed.setText(turn.name());
+        turn = turn == Letter.A ? Letter.B : Letter.A;
+        numberofTurns++;
 
-            Task<String> questionTask = new Task<>() {
-                @Override
-                protected String call() {
-                    QuestionRepository repository = new QuestionRepository();
-                    return repository.getRandomQuestion();
-                }
+        Task<String> questionTask = new Task<>() {
+            @Override
+            protected String call() {
+                QuestionRepository repository = new QuestionRepository();
+                return repository.getRandomQuestion();
+            }
 
-                @Override
-                protected void succeeded() {
-                    String question = getValue();
-                    showWinnerQuestionDialog(question);
-                }
+            @Override
+            protected void succeeded() {
+                String question = getValue();
+                showWinnerQuestionDialog(question);
+            }
 
-                @Override
-                protected void failed() {
-                    Throwable ex = getException();
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Could not retrieve question");
-                        alert.setContentText(ex.getMessage());
-                        alert.showAndWait();
-                    });
-                }
-            };
-            networkUtils.sendGameState(getGameState());
-            new Thread(questionTask).start();
-        }
+            @Override
+            protected void failed() {
+                Throwable ex = getException();
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText("Could not retrieve question");
+                    alert.setContentText(ex.getMessage());
+                    alert.showAndWait();
+                });
+            }
+        };
+        networkUtils.sendGameState(getGameState());
+        new Thread(questionTask).start();
+
     }
 
     private void showWinnerQuestionDialog(String question) {

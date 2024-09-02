@@ -2,29 +2,47 @@ package hr.algebra.trivialpursuit.trivialpursuit.utils;
 
 import hr.algebra.trivialpursuit.trivialpursuit.GameState;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Properties;
 
 public class NetworkUtils {
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    public static int SERVER_PORT;
 
-    private static NetworkUtils instance = new NetworkUtils();
+    private static volatile NetworkUtils instance = new NetworkUtils();
 
     private NetworkUtils() {
 
     }
 
     public static NetworkUtils getInstance() {
+        synchronized (NetworkUtils.class) {
+            if (instance == null) {
+                instance = new NetworkUtils();
+            }
+        }
         return instance;
+    }
+
+    static {
+        try {
+            Properties prop = new Properties();
+            prop.load(new FileInputStream("socket.properties"));
+            SERVER_PORT = Integer.parseInt(prop.getProperty("SERVER_PORT"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void connectToServerAndSendMessage() {
         try {
-            // Connect to the server
-            Socket socket = new Socket("localhost", 12345);
+
+            Socket socket = new Socket("localhost", SERVER_PORT);
             output = new ObjectOutputStream(socket.getOutputStream());
             input = new ObjectInputStream(socket.getInputStream());
 
